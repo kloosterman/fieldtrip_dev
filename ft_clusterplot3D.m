@@ -153,6 +153,7 @@ cfgfreq.colorbar = 'no';
 cfgfreq.interactive = 'no';
 cfgfreq.title = ' ';
 cfgfreq.interpolatenan     = 'no';
+cfgfreq.figure = 'gca';
 
 subplot(subplotsize(1),subplotsize(2), subplotind(1));
 colormap(gca, cmap); hold on
@@ -229,6 +230,7 @@ cfgtopo.interactive = 'no';
 cfgtopo.colormap = cmap; 
 % cfgtopo.interpolatenan = 'no';
 cfgtopo.interpolation = 'v4';
+cfgtopo.figure = 'gca';
 
 subplot(subplotsize(1),subplotsize(2), subplotind(2));
 hold on
