@@ -93,7 +93,7 @@ layout = ft_getopt(cfg, 'layout');
 titleTFR = ft_getopt(cfg, 'titleTFR', ' ');
 mask = ft_getopt(stat, 'mask'); % mask from stat struct!
 alpha = ft_getopt(cfg, 'alpha', 1);    % number, highest cluster p-value to be plotted max 1 (default = 0.05)
-
+clrbar= ft_getopt(cfg, 'colorbar', 'no'); 
 % prepare the layout, this only has to be done once
 tmpcfg = keepfields(cfg, {'layout', 'rows', 'columns', 'commentpos', 'scalepos', 'elec', 'grad', 'opto', 'showcallinfo'});
 layout = ft_prepare_layout(tmpcfg, stat);
@@ -169,13 +169,17 @@ ax=gca; hold on
 plot([0,0], ax.YLim,'k',[0,0], ax.YLim,'k', 'Linewidth', 0.5);
 ax.Position(3) = length(freqTFR.time)*0.015;
 title(sprintf('%s', titleTFR), 'Fontsize', 12)
-% zlim = get(gca, 'CLim'); % use same CLim for both topo and TFR
+zlim = get(gca, 'CLim'); % use same CLim for both topo and TFR
+
 c = colorbar;
 c.Position(1) = c.Position(1)+0.04;
 c.Position(2) = c.Position(2)-0.1;
 c.Position(3) = 0.015; % 0.005
 c.Position(4) = 0.05;
 c.Box = 'off';
+% if strcmp(clrbar, 'no')
+%     c.Visible = 'off';
+% end
 
 %% prepare data topo
 chansel = any(mask(:,:),2);
@@ -268,6 +272,10 @@ c.Position(2) = c.Position(2)-0.1;
 c.Position(3) = 0.015;
 c.Position(4) = 0.05;
 c.Box = 'off';
+% if strcmp(clrbar, 'no')
+%     c.Visible = 'off';
+% end
+
 % if length(c.Ticks) == 5
 %   c.Ticks = c.Ticks([1 3 5]);
 % end
