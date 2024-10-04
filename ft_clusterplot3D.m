@@ -97,6 +97,7 @@ clrbar= ft_getopt(cfg, 'colorbar', 'no');
 % prepare the layout, this only has to be done once
 tmpcfg = keepfields(cfg, {'layout', 'rows', 'columns', 'commentpos', 'scalepos', 'elec', 'grad', 'opto', 'showcallinfo'});
 layout = ft_prepare_layout(tmpcfg, stat);
+ylabl = ft_getopt(cfg, 'ylabel', 'Frequency/Time scale'); 
 
 if ~isfield(stat, [clussign 'clusters'])
     fprintf('No labelmat present')
@@ -167,7 +168,7 @@ ft_singleplotTFR(cfgfreq, freqTFR);
 box on
 ax=gca; hold on
 plot([0,0], ax.YLim,'k',[0,0], ax.YLim,'k', 'Linewidth', 0.5);
-ax.Position(3) = length(freqTFR.time)*0.015;
+% ax.Position(3) = length(freqTFR.time)*0.015;
 title(sprintf('%s', titleTFR), 'Fontsize', 12)
 zlim = get(gca, 'CLim'); % use same CLim for both topo and TFR
 
@@ -180,6 +181,8 @@ c.Box = 'off';
 % if strcmp(clrbar, 'no')
 %     c.Visible = 'off';
 % end
+xlabel('Time (s)')
+ylabel(ylabl)
 
 %% prepare data topo
 chansel = any(mask(:,:),2);
