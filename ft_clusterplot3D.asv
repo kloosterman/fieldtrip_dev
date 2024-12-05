@@ -156,9 +156,7 @@ cfgfreq.title = ' ';
 cfgfreq.interpolatenan     = 'no';
 cfgfreq.figure = 'gca';
 
-% subplot(subplotsize(1),subplotsize(2), subplotind(1));
-% tiledlayout(subplotsize); % set when calling?
-nexttile
+subplot(subplotsize(1),subplotsize(2), subplotind(1));
 colormap(gca, cmap); hold on
 
 ft_singleplotTFR(cfgfreq, freqTFR);
@@ -176,13 +174,13 @@ zlim = get(gca, 'CLim'); % use same CLim for both topo and TFR
 
 c = colorbar;
 c.Position(1) = c.Position(1)+0.04;
-c.Position(2) = c.Position(2)+0.1;
+c.Position(2) = c.Position(2)-0.1;
 c.Position(3) = 0.015; % 0.005
 c.Position(4) = 0.05;
 c.Box = 'off';
-% % if strcmp(clrbar, 'no')
-% %     c.Visible = 'off';
-% % end
+% if strcmp(clrbar, 'no')
+%     c.Visible = 'off';
+% end
 xlabel('Time (s)')
 ylabel(ylabl)
 
@@ -241,8 +239,8 @@ cfgtopo.colormap = cmap;
 cfgtopo.interpolation = 'v4';
 cfgtopo.figure = 'gca';
 
-% subplot(subplotsize(1),subplotsize(2), subplotind(2));
-ax = nexttile;
+subplot(subplotsize(1),subplotsize(2), subplotind(2));
+tiledlayout(subplotsize);
 hold on
 ft_topoplotTFR(cfgtopo, freqtopo);
 % colormap(gca, cmap); 
@@ -273,8 +271,8 @@ title(sprintf('%s cluster %d\np = %1.3f', clussign, clus2plot, clus_pval ), 'Fon
 plotsuccess = true; % output argument
 
 c = colorbar;
-% c.Position(1) = c.Position(1)+0.04;
-c.Position(2) = c.Position(2)+0.1;
+c.Position(1) = c.Position(1)+0.04;
+c.Position(2) = c.Position(2)-0.1;
 c.Position(3) = 0.015;
 c.Position(4) = 0.05;
 c.Box = 'off';
