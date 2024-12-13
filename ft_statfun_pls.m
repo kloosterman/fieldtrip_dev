@@ -15,7 +15,7 @@ function stat = ft_statfun_pls(cfg, data, design)
 %   pls_analysis.m from Rotman Baycrest software.
 % 
 % Example usage:
-%   cfg.method = 3; % 1 for mean-centering, 2 for non-rotated, 3 for behavioral PLS
+%   cfg.pls_method = 3; % 1 for mean-centering, 2 for non-rotated, 3 for behavioral PLS
 %   cfg.statistic = 'ft_statfun_pls';
 %   cfg.num_perm = 500;
 %   cfg.num_boot = 1000;
@@ -37,8 +37,8 @@ end
 if ~isfield(cfg, 'num_boot')
     cfg.num_boot = 1000; % Default number of bootstrap samples
 end
-if ~isfield(cfg, 'method')
-    cfg.method = 1; % Default to mean-centering PLS
+if ~isfield(cfg, 'pls_method')
+    cfg.pls_method = 1; % Default to mean-centering PLS
 end
 
 % Check for required data.dimord
@@ -73,7 +73,7 @@ end
 % Configure PLS options
 pls_options.num_perm = cfg.num_perm;
 pls_options.num_boot = cfg.num_boot;
-pls_options.method = cfg.method; % Directly assign method as a number, as required by pls_analysis
+pls_options.method = cfg.pls_method; % Directly assign method as a number, as required by pls_analysis
 
 % Check for any additional PLS-specific configuration in cfg
 fields = fieldnames(cfg);
