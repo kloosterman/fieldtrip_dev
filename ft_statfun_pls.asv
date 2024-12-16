@@ -48,10 +48,14 @@ end
 if ~isfield(cfg, 'num_subj_lst')
     error('cfg.num_subj_lst must be specified to indicate the number of subjects per condition.');
 end
+if ~isfield(cfg, 'cormode')
+    cfg.cormode = 0; % Pearson
+end
 
 data  = {transpose(data)};
 
 % Configure PLS options
+pls_options.num_perm = cfg.num_perm;
 pls_options.num_perm = cfg.num_perm;
 pls_options.num_boot = cfg.num_boot;
 pls_options.method = cfg.pls_method; % Directly assign method as a number, as required by pls_analysis
@@ -73,13 +77,16 @@ end
 % Parse PLS results into FieldTrip-compatible structure
 stat = struct();
 stat.stat = results.boot_result.compare_u(:,1);
-stat.posclusterslabelmat = zeros()
+% stat.posclusterslabelmat = zeros()
 for i = 1:length(results.perm_result.sprob)
-  stat.posclusters(i).prob = results.perm_result.sprob(i)
+  stat.posclusters(i).prob = results.perm_result.sprob(i);
 end
 stat.latent = results.usc;
 stat.perm_res = results.perm_result;
 stat.boot_res = results.boot_result;
+stat.brainscores = results.usc(:,1);
+stat.behavscores = results.vsc(:,1);
+
 stat.cfg = cfg;
 
 end

@@ -48,11 +48,15 @@ end
 if ~isfield(cfg, 'num_subj_lst')
     error('cfg.num_subj_lst must be specified to indicate the number of subjects per condition.');
 end
+if ~isfield(cfg, 'cormode')
+    cfg.cormode = 0; % Pearson
+end
 
 data  = {transpose(data)};
 
 % Configure PLS options
 pls_options.num_perm = cfg.num_perm;
+pls_options.cormode = cfg.cormode;
 pls_options.num_boot = cfg.num_boot;
 pls_options.method = cfg.pls_method; % Directly assign method as a number, as required by pls_analysis
 pls_options.num_subj_lst = cfg.num_subj_lst; % Number of subjects per condition
