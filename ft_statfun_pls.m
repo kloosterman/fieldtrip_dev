@@ -87,6 +87,7 @@ stat.boot_res = results.boot_result;
 stat.brainscores = results.usc(:,1);
 stat.behavscores = results.vsc(:,1);
 
+stat.results = results;
 stat.cfg = cfg;
 
 end
