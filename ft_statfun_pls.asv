@@ -52,11 +52,19 @@ if ~isfield(cfg, 'cormode')
     cfg.cormode = 0; % Pearson
 end
 
-data  = {transpose(data)};
+% make cell array of groups
+ngroups = length(cfg.num_subj_lst);
+groupinds = [];
+groupinds(:,1) = [1 ]
+datamat_lst = cell(1,ngroups);
+for i=1:ngroups
+  datamat_lst{i}  = transpose(data(:,));
+end
+
 
 % Configure PLS options
 pls_options.num_perm = cfg.num_perm;
-pls_options.num_perm = cfg.num_perm;
+pls_options.cormode = cfg.cormode;
 pls_options.num_boot = cfg.num_boot;
 pls_options.method = cfg.pls_method; % Directly assign method as a number, as required by pls_analysis
 pls_options.num_subj_lst = cfg.num_subj_lst; % Number of subjects per condition
@@ -87,6 +95,7 @@ stat.boot_res = results.boot_result;
 stat.brainscores = results.usc(:,1);
 stat.behavscores = results.vsc(:,1);
 
+stat.results = results;
 stat.cfg = cfg;
 
 end

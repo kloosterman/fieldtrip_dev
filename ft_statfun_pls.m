@@ -52,7 +52,13 @@ if ~isfield(cfg, 'cormode')
     cfg.cormode = 0; % Pearson
 end
 
-data  = {transpose(data)};
+% make cell array of groups
+ngroups = length(cfg.num_subj_lst);
+datamat_lst = cell(1,ngroups);
+indexVector = groupSizesToIndices(cfg.num_subj_lst);
+for i=1:ngroups
+  datamat_lst{i}  = transpose(data(:, indexVector==i));
+end
 
 % Configure PLS options
 pls_options.num_perm = cfg.num_perm;
@@ -72,7 +78,7 @@ for i = 1:length(fields)
 end
 
 % Call pls_analysis with num_cond as input 3
-[results] = pls_analysis(data, cfg.num_subj_lst, cfg.num_cond, pls_options);
+[results] = pls_analysis(datamat_lst, cfg.num_subj_lst, cfg.num_cond, pls_options);
 
 % Parse PLS results into FieldTrip-compatible structure
 stat = struct();
@@ -90,4 +96,18 @@ stat.behavscores = results.vsc(:,1);
 stat.results = results;
 stat.cfg = cfg;
 
+end
+
+
+function indexVector = groupSizesToIndices(groupSizes)
+    % This function transforms a vector of group sizes into an index vector.
+    % Each unique group index is repeated according to its size.
+
+    % Initialize the index vector
+    indexVector = [];
+
+    % Loop through each group size and append its indices
+    for i = 1:length(groupSizes)
+        indexVector = [indexVector, i * ones(1, groupSizes(i))];
+    end
 end
