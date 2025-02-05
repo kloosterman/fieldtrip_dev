@@ -54,13 +54,14 @@ end
 
 % make cell array of groups
 ngroups = length(cfg.num_subj_lst);
-groupinds = [];
-groupinds(:,1) = [1 ]
 datamat_lst = cell(1,ngroups);
+indexVector = groupSizesToIndices(cfg.num_subj_lst);
 for i=1:ngroups
-  datamat_lst{i}  = transpose(data(:,));
+  datamat_lst{i} =  transpose(data(:, indexVector==i));
+  if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
+    datamat_lst{i} = [datamat_lst{i} cfg.contrast(i) .* datamat_lst{i}]; 
+  end
 end
-
 
 % Configure PLS options
 pls_options.num_perm = cfg.num_perm;
@@ -80,12 +81,18 @@ for i = 1:length(fields)
 end
 
 % Call pls_analysis with num_cond as input 3
-[results] = pls_analysis(data, cfg.num_subj_lst, cfg.num_cond, pls_options);
+[results] = pls_analysis(datamat_lst, cfg.num_subj_lst, cfg.num_cond, pls_options);
 
 % Parse PLS results into FieldTrip-compatible structure
 stat = struct();
-stat.stat = results.boot_result.compare_u(:,1);
-% stat.posclusterslabelmat = zeros()
+if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
+  ndatapoints = size(results.boot_result.compare_u,1);
+  stat.stat = results.boot_result.compare_u(1:(ndatapoints/2), 1);
+  stat.prob = results.boot_result.compare_u((ndatapoints/2)+!:,1);
+else
+  stat.stat = results.boot_result.compare_u(:,1);
+end
+
 for i = 1:length(results.perm_result.sprob)
   stat.posclusters(i).prob = results.perm_result.sprob(i);
 end
@@ -98,4 +105,18 @@ stat.behavscores = results.vsc(:,1);
 stat.results = results;
 stat.cfg = cfg;
 
+end
+
+
+function indexVector = groupSizesToIndices(groupSizes)
+    % This function transforms a vector of group sizes into an index vector.
+    % Each unique group index is repeated according to its size.
+
+    % Initialize the index vector
+    indexVector = [];
+
+    % Loop through each group size and append its indices
+    for i = 1:length(groupSizes)
+        indexVector = [indexVector, i * ones(1, groupSizes(i))];
+    end
 end

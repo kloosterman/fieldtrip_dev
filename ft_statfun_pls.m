@@ -57,7 +57,10 @@ ngroups = length(cfg.num_subj_lst);
 datamat_lst = cell(1,ngroups);
 indexVector = groupSizesToIndices(cfg.num_subj_lst);
 for i=1:ngroups
-  datamat_lst{i}  = transpose(data(:, indexVector==i));
+  datamat_lst{i} =  transpose(data(:, indexVector==i));
+  if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
+    datamat_lst{i} = [datamat_lst{i} cfg.contrast(i) .* datamat_lst{i}]; 
+  end
 end
 
 % Configure PLS options
@@ -82,8 +85,14 @@ end
 
 % Parse PLS results into FieldTrip-compatible structure
 stat = struct();
-stat.stat = results.boot_result.compare_u(:,1);
-% stat.posclusterslabelmat = zeros()
+if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
+  ndatapoints = size(results.boot_result.compare_u,1);
+  stat.stat = results.boot_result.compare_u(1:(ndatapoints/2), 1);
+  stat.prob = results.boot_result.compare_u((ndatapoints/2)+1:end,1);
+else
+  stat.stat = results.boot_result.compare_u(:,1);
+end
+
 for i = 1:length(results.perm_result.sprob)
   stat.posclusters(i).prob = results.perm_result.sprob(i);
 end
