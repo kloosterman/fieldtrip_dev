@@ -178,7 +178,7 @@ c = colorbar;
 c.Position(1) = c.Position(1)+0.04;
 c.Position(2) = c.Position(2)+0.1;
 c.Position(3) = 0.015; % 0.005
-c.Position(4) = 0.05;
+c.Position(4) = 0.35;
 c.Box = 'off';
 % % if strcmp(clrbar, 'no')
 % %     c.Visible = 'off';
@@ -273,10 +273,10 @@ title(sprintf('%s cluster %d\np = %1.3f', clussign, clus2plot, clus_pval ), 'Fon
 plotsuccess = true; % output argument
 
 c = colorbar;
-% c.Position(1) = c.Position(1)+0.04;
+c.Position(1) = c.Position(1)+0.075;
 c.Position(2) = c.Position(2)+0.1;
 c.Position(3) = 0.015;
-c.Position(4) = 0.05;
+c.Position(4) = 0.35;
 c.Box = 'off';
 % if strcmp(clrbar, 'no')
 %     c.Visible = 'off';

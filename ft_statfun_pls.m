@@ -51,6 +51,9 @@ end
 if ~isfield(cfg, 'cormode')
     cfg.cormode = 0; % Pearson
 end
+if ~isfield(cfg, 'interaction')
+    cfg.interaction = 'no'; % Pearson
+end
 
 % make cell array of groups
 ngroups = length(cfg.num_subj_lst);
