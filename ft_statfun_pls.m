@@ -52,7 +52,7 @@ if ~isfield(cfg, 'cormode')
     cfg.cormode = 0; % Pearson
 end
 if ~isfield(cfg, 'interaction')
-    cfg.interaction = 'no'; % Pearson
+    cfg.interaction = 'no'; 
 end
 
 % make cell array of groups
