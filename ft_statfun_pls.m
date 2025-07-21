@@ -58,21 +58,24 @@ end
 % make cell array of groups
 ngroups = length(cfg.num_subj_lst);
 datamat_lst = cell(1,ngroups);
-indexVector = groupSizesToIndices(cfg.num_subj_lst);
+indexVector = groupSizesToIndices(cfg.num_subj_lst * cfg.num_cond);
 for i=1:ngroups
   datamat_lst{i} =  transpose(data(:, indexVector==i));
   if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
-    datamat_lst{i} = [datamat_lst{i} cfg.contrast(i) .* datamat_lst{i}]; 
+    datamat_lst{i} = cfg.contrast(i) .* datamat_lst{i};
   end
 end
 
 % Configure PLS options
+pls_options = [];
 pls_options.num_perm = cfg.num_perm;
 pls_options.cormode = cfg.cormode;
 pls_options.num_boot = cfg.num_boot;
 pls_options.method = cfg.pls_method; % Directly assign method as a number, as required by pls_analysis
 pls_options.num_subj_lst = cfg.num_subj_lst; % Number of subjects per condition
-pls_options.stacked_behavdata = transpose(design); % Add design matrix to PLS options
+if cfg.pls_method == 3
+  pls_options.stacked_behavdata = transpose(design); % Add design matrix to PLS options
+end
 
 % Check for any additional PLS-specific configuration in cfg
 fields = fieldnames(cfg);
@@ -88,25 +91,28 @@ end
 
 % Parse PLS results into FieldTrip-compatible structure
 stat = struct();
-if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
-  ndatapoints = size(results.boot_result.compare_u,1);
-  stat.stat = results.boot_result.compare_u(1:(ndatapoints/2), 1);
-  stat.prob = results.boot_result.compare_u((ndatapoints/2)+1:end,1);
-else
-  stat.stat = results.boot_result.compare_u(:,1);
-end
-
-for i = 1:length(results.perm_result.sprob)
-  stat.posclusters(i).prob = results.perm_result.sprob(i);
-end
 stat.latent = results.usc;
-stat.perm_res = results.perm_result;
-stat.boot_res = results.boot_result;
-stat.brainscores = results.usc(:,1);
+% stat.brainscores = results.usc(:,1);
+stat.brainscores = cell(1,ngroups);
+for i=1:ngroups
+  stat.brainscores{i} = results.usc(indexVector==i,1);
+  stat.brainscores{i} = reshape(stat.brainscores{i}, [], cfg.num_cond);
+end
 stat.behavscores = results.vsc(:,1);
-
 stat.results = results;
 stat.cfg = cfg;
+
+if isfield(results, 'boot_result')
+  stat.boot_res = results.boot_result;
+  stat.stat = results.boot_result.compare_u(:,1); % bootstrap ratios
+end
+
+if isfield(results, 'perm_result')
+  for i = 1:length(results.perm_result.sprob)
+    stat.posclusters(i).prob = results.perm_result.sprob(i);
+  end
+  stat.perm_res = results.perm_result;
+end
 
 end
 

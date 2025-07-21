@@ -67,7 +67,7 @@ ft_preamble init              % this will reset ft_warning and show the function
 ft_preamble debug             % this allows for displaying or saving the function name and input arguments upon an error
 ft_preamble loadvar    stat % this reads the input data in case the user specified the cfg.inputfile option
 ft_preamble provenance stat % this records the time and memory usage at the beginning of the function
-ft_preamble trackconfig       % this converts the cfg structure in a config object, which tracks the cfg options that are being used
+% ft_preamble trackconfig       % this converts the cfg structure in a config object, which tracks the cfg options that are being used
 
 % the ft_abort variable is set to true or false in ft_preamble_init
 if ft_abort
@@ -175,10 +175,15 @@ title(sprintf('%s', titleTFR), 'Fontsize', 12)
 zlim = get(gca, 'CLim'); % use same CLim for both topo and TFR
 
 c = colorbar;
+% c.Position = [0.9, 0.55, 0.02, 0.35];
+% 
+% c.Position(1) = c.Position(1) * 1;
 c.Position(1) = c.Position(1)+0.04;
 c.Position(2) = c.Position(2)+0.1;
-c.Position(3) = 0.015; % 0.005
-c.Position(4) = 0.35;
+c.Position(3) = c.Position(3) * 0.5;
+c.Position(4) = c.Position(4) * 0.3;
+% c.Position(3) = 0.015; % 0.005
+% c.Position(4) = 0.35;
 c.Box = 'off';
 % % if strcmp(clrbar, 'no')
 % %     c.Visible = 'off';
@@ -273,10 +278,19 @@ title(sprintf('%s cluster %d\np = %1.3f', clussign, clus2plot, clus_pval ), 'Fon
 plotsuccess = true; % output argument
 
 c = colorbar;
-c.Position(1) = c.Position(1)+0.075;
+% c.Position(1) = c.Position(1) * 1.1;
+% c.Position(3) = c.Position(3) * 0.5;
+% c.Position(4) = c.Position(4) * 0.3;
+
+% c.Position(1) = c.Position(1)+0.075;
+% c.Position(2) = c.Position(2)+0.1;
+% c.Position(3) = 0.015;
+% c.Position(4) = 0.35;
+c.Position(1) = c.Position(1)+0.04;
 c.Position(2) = c.Position(2)+0.1;
-c.Position(3) = 0.015;
-c.Position(4) = 0.35;
+c.Position(3) = c.Position(3) * 0.5;
+c.Position(4) = c.Position(4) * 0.3;
+
 c.Box = 'off';
 % if strcmp(clrbar, 'no')
 %     c.Visible = 'off';
