@@ -74,7 +74,10 @@ pls_options.num_boot = cfg.num_boot;
 pls_options.method = cfg.pls_method; % Directly assign method as a number, as required by pls_analysis
 pls_options.num_subj_lst = cfg.num_subj_lst; % Number of subjects per condition
 if cfg.pls_method == 3
-  pls_options.stacked_behavdata = transpose(design); % Add design matrix to PLS options
+    if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
+      design = design .* cfg.contrast(indexVector);
+    end
+    pls_options.stacked_behavdata = transpose(design); % Add design matrix to PLS options    
 end
 
 % Check for any additional PLS-specific configuration in cfg
