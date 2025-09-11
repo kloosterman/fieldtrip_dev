@@ -1,19 +1,19 @@
 function stat = ft_statfun_pls(cfg, data, design)
 % FT_STATFUN_PLS Wrapper function for Partial Least Squares (PLS) analysis using pls_analysis.m
-% 
+%
 % This function integrates PLS analysis into FieldTrip's statistical pipeline.
-% 
+%
 % INPUT:
 %   cfg    - Configuration structure with relevant PLS parameters.
 %   data   - Matrix of data with dimensions observations x subjects.
 %   design - Design matrix for the analysis.
-% 
+%
 % OUTPUT:
 %   stat   - Struct with PLS results.
-% 
+%
 % REQUIREMENTS:
 %   pls_analysis.m from Rotman Baycrest software.
-% 
+%
 % Example usage:
 %   cfg.pls_method = 3; % 1 for mean-centering, 2 for non-rotated, 3 for behavioral PLS
 %   cfg.num_cond = 2; % Number of conditions
@@ -21,38 +21,44 @@ function stat = ft_statfun_pls(cfg, data, design)
 %   cfg.statistic = 'ft_statfun_pls';
 %   cfg.num_perm = 500;
 %   cfg.num_boot = 1000;
-% 
+%
 % PLS Method Legend:
 %   1 - Mean-Centering PLS: Standard PLS method with mean centering of the data.
 %   2 - Non-Rotated PLS: An alternative PLS method without rotation.
 %   3 - Behavioral PLS: PLS designed for analyzing behavioral data relationships.
-% 
+%
 % Check if pls_analysis.m is available
 if ~exist('pls_analysis', 'file')
-    error('pls_analysis.m not found in the MATLAB path. Please add it to your path.');
+  error('pls_analysis.m not found in the MATLAB path. Please add it to your path.');
 end
 
 % Parse input data and configuration
 if ~isfield(cfg, 'num_perm')
-    cfg.num_perm = 500; % Default number of permutations
+  cfg.num_perm = 500; % Default number of permutations
 end
 if ~isfield(cfg, 'num_boot')
-    cfg.num_boot = 1000; % Default number of bootstrap samples
+  cfg.num_boot = 1000; % Default number of bootstrap samples
 end
 if ~isfield(cfg, 'pls_method')
-    cfg.pls_method = 1; % Default to mean-centering PLS
+  cfg.pls_method = 1; % Default to mean-centering PLS
+  %			1. Mean-Centering Task PLS
+  %			2. Non-Rotated Task PLS
+  %			3. Regular Behavior PLS
+  %			4. Regular Multiblock PLS
+  %			5. Non-Rotated Behavior PLS
+  %			6. Non-Rotated Multiblock PLS
 end
 if ~isfield(cfg, 'num_cond')
-    error('cfg.num_cond must be specified to indicate the number of conditions.');
+  error('cfg.num_cond must be specified to indicate the number of conditions.');
 end
 if ~isfield(cfg, 'num_subj_lst')
-    error('cfg.num_subj_lst must be specified to indicate the number of subjects per condition.');
+  error('cfg.num_subj_lst must be specified to indicate the number of subjects per condition.');
 end
 if ~isfield(cfg, 'cormode')
-    cfg.cormode = 0; % Pearson
+  cfg.cormode = 0; % Pearson
 end
 if ~isfield(cfg, 'interaction')
-    cfg.interaction = 'no'; 
+  cfg.interaction = 'no';
 end
 
 % make cell array of groups
@@ -74,19 +80,19 @@ pls_options.num_boot = cfg.num_boot;
 pls_options.method = cfg.pls_method; % Directly assign method as a number, as required by pls_analysis
 pls_options.num_subj_lst = cfg.num_subj_lst; % Number of subjects per condition
 if cfg.pls_method == 3
-    if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
-      design = design .* cfg.contrast(indexVector);
-    end
-    pls_options.stacked_behavdata = transpose(design); % Add design matrix to PLS options    
+  if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
+    design = design .* cfg.contrast(indexVector);
+  end
+  pls_options.stacked_behavdata = transpose(design); % Add design matrix to PLS options
 end
 
 % Check for any additional PLS-specific configuration in cfg
 fields = fieldnames(cfg);
 for i = 1:length(fields)
-    if startsWith(fields{i}, 'pls_')
-        option_name = strrep(fields{i}, 'pls_', '');
-        pls_options.(option_name) = cfg.(fields{i});
-    end
+  if startsWith(fields{i}, 'pls_')
+    option_name = strrep(fields{i}, 'pls_', '');
+    pls_options.(option_name) = cfg.(fields{i});
+  end
 end
 
 % Call pls_analysis with num_cond as input 3
@@ -97,11 +103,13 @@ stat = struct();
 stat.latent = results.usc;
 % stat.brainscores = results.usc(:,1);
 stat.brainscores = cell(1,ngroups);
+stat.behavscores = cell(1,ngroups);
 for i=1:ngroups
   stat.brainscores{i} = results.usc(indexVector==i,1);
   stat.brainscores{i} = reshape(stat.brainscores{i}, [], cfg.num_cond);
+  stat.behavscores{i} = results.vsc(indexVector==i,1);
+  stat.behavscores{i} = reshape(stat.behavscores{i}, [], cfg.num_cond);
 end
-stat.behavscores = results.vsc(:,1);
 stat.results = results;
 stat.cfg = cfg;
 
@@ -121,14 +129,14 @@ end
 
 
 function indexVector = groupSizesToIndices(groupSizes)
-    % This function transforms a vector of group sizes into an index vector.
-    % Each unique group index is repeated according to its size.
+% This function transforms a vector of group sizes into an index vector.
+% Each unique group index is repeated according to its size.
 
-    % Initialize the index vector
-    indexVector = [];
+% Initialize the index vector
+indexVector = [];
 
-    % Loop through each group size and append its indices
-    for i = 1:length(groupSizes)
-        indexVector = [indexVector, i * ones(1, groupSizes(i))];
-    end
+% Loop through each group size and append its indices
+for i = 1:length(groupSizes)
+  indexVector = [indexVector, i * ones(1, groupSizes(i))];
+end
 end
