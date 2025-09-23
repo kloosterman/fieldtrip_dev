@@ -60,16 +60,24 @@ end
 if ~isfield(cfg, 'interaction')
   cfg.interaction = 'no';
 end
+if ~isfield(cfg, 'zscorescores')
+  cfg.zscorescores = 'no';
+end
 
 % make cell array of groups
 ngroups = length(cfg.num_subj_lst);
+ncond = cfg.num_cond;
 datamat_lst = cell(1,ngroups);
-indexVector = groupSizesToIndices(cfg.num_subj_lst * cfg.num_cond);
+indexVector = groupSizesToIndices(cfg.num_subj_lst * ncond); % 
 for i=1:ngroups
-  datamat_lst{i} =  transpose(data(:, indexVector==i));
-  if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
-    datamat_lst{i} = cfg.contrast(i) .* datamat_lst{i};
+  groupdat = transpose(data(:, indexVector==i));
+  groupdat_incond = zeros(size(groupdat));
+  indexVector_cond = groupSizesToIndices( repmat(cfg.num_subj_lst(i), 1, ncond) ); %
+  for icond=1:ncond
+    conddat = groupdat(indexVector_cond == icond,:);
+    groupdat_incond(icond:ncond:end,:) = conddat;
   end
+  datamat_lst{i} = groupdat_incond;
 end
 
 % Configure PLS options
@@ -80,10 +88,13 @@ pls_options.num_boot = cfg.num_boot;
 pls_options.method = cfg.pls_method; % Directly assign method as a number, as required by pls_analysis
 pls_options.num_subj_lst = cfg.num_subj_lst; % Number of subjects per condition
 if cfg.pls_method == 3
-  if strcmp(cfg.interaction, 'yes') % augment the datamat with contrast data
-    design = design .* cfg.contrast(indexVector);
+  design = transpose(design);
+  design_incond = zeros(size(design));
+  for icond=1:ncond
+    conddat = design(indexVector_cond == icond,:);
+    design_incond(icond:ncond:end,:) = conddat;
   end
-  pls_options.stacked_behavdata = transpose(design); % Add design matrix to PLS options
+  pls_options.stacked_behavdata = design_incond; % Add design matrix to PLS options
 end
 
 % Check for any additional PLS-specific configuration in cfg
@@ -104,6 +115,10 @@ stat.latent = results.usc;
 % stat.brainscores = results.usc(:,1);
 stat.brainscores = cell(1,ngroups);
 stat.behavscores = cell(1,ngroups);
+if strcmp(cfg.zscorescores, 'yes')
+  results.usc = zscore(results.usc);
+  results.vsc = zscore(results.vsc);
+end
 for i=1:ngroups
   stat.brainscores{i} = results.usc(indexVector==i,1);
   stat.brainscores{i} = reshape(stat.brainscores{i}, [], cfg.num_cond);
