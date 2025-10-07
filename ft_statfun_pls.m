@@ -75,38 +75,38 @@ indexVector = groupSizesToIndices(cfg.num_subj_lst * ncond);
 % If doing Behavior PLS, ensure design has rows = (subjects*conditions across all groups),
 % and columns = behavior measures
 if cfg.pls_method == 3
-    if size(design,1) < size(design,2)   % make rows = observations
-        designT = design.';
-    else
-        designT = design;
-    end
-    behav_blocks = cell(1, ngroups);  % temp, then we'll vertcat into 2-D
+  if size(design,1) < size(design,2)   % make rows = observations
+    designT = design.';
+  else
+    designT = design;
+  end
+  behav_blocks = cell(1, ngroups);  % temp, then we'll vertcat into 2-D
 end
 
 for i = 1:ngroups
-    % --------- brain/data block for group i
-    groupdat = data(:, indexVector==i).';
-    groupdat_incond = zeros(size(groupdat));
+  % --------- brain/data block for group i
+  groupdat = data(:, indexVector==i).';
+  groupdat_incond = zeros(size(groupdat));
 
-    % within-group condition index (subjects repeated per condition)
-    indexVector_cond = groupSizesToIndices(repmat(cfg.num_subj_lst(i),1,ncond));
+  % within-group condition index (subjects repeated per condition)
+  indexVector_cond = groupSizesToIndices(repmat(cfg.num_subj_lst(i),1,ncond));
 
+  for icond = 1:ncond
+    conddat = groupdat(indexVector_cond==icond, :);
+    groupdat_incond(icond:ncond:end, :) = conddat;
+  end
+  datamat_lst{i} = groupdat_incond;
+
+  % --------- behavior/design block for group i (matches row order!)
+  if cfg.pls_method == 3
+    groupdes = designT(indexVector==i, :);         % pick rows for this group
+    groupdes_incond = zeros(size(groupdes));
     for icond = 1:ncond
-        conddat = groupdat(indexVector_cond==icond, :);
-        groupdat_incond(icond:ncond:end, :) = conddat;
+      conddes = groupdes(indexVector_cond==icond, :);
+      groupdes_incond(icond:ncond:end, :) = conddes;
     end
-    datamat_lst{i} = groupdat_incond;
-
-    % --------- behavior/design block for group i (matches row order!)
-    if cfg.pls_method == 3
-        groupdes = designT(indexVector==i, :);         % pick rows for this group
-        groupdes_incond = zeros(size(groupdes));
-        for icond = 1:ncond
-            conddes = groupdes(indexVector_cond==icond, :);
-            groupdes_incond(icond:ncond:end, :) = conddes;
-        end
-        behav_blocks{i} = groupdes_incond;             % rows align with datamat_lst{i}
-    end
+    behav_blocks{i} = groupdes_incond;             % rows align with datamat_lst{i}
+  end
 end
 
 % --------- PLS options
@@ -119,10 +119,10 @@ pls_options.num_subj_lst = cfg.num_subj_lst;
 
 % Behavior PLS / Multiblock: single 2-D matrix, rows == sum of rows in datamat_lst
 if cfg.pls_method == 3
-    pls_options.stacked_behavdata = vertcat(behav_blocks{:});  % [sum_rows x #behav_measures]
-    % sanity check (optional):
-    % assert(size(pls_options.stacked_behavdata,1) == sum(cellfun(@(x)size(x,1), datamat_lst)), ...
-    %    'Row mismatch between behavior and data blocks');
+  pls_options.stacked_behavdata = vertcat(behav_blocks{:});  % [sum_rows x #behav_measures]
+  % sanity check (optional):
+  % assert(size(pls_options.stacked_behavdata,1) == sum(cellfun(@(x)size(x,1), datamat_lst)), ...
+  %    'Row mismatch between behavior and data blocks');
 end
 
 % Check for any additional PLS-specific configuration in cfg
@@ -144,16 +144,43 @@ stat.latent = results.usc;
 % stat.brainscores = results.usc(:,1);
 stat.brainscores = cell(1,ngroups);
 stat.behavscores = cell(1,ngroups);
+num_lv = size(design,1);
 if strcmp(cfg.zscorescores, 'yes')
   results.usc = zscore(results.usc);
   results.vsc = zscore(results.vsc);
 end
-for i=1:ngroups
-  stat.brainscores{i} = results.usc(indexVector==i,1);
-  stat.brainscores{i} = reshape(stat.brainscores{i}, [], cfg.num_cond);
-  stat.behavscores{i} = results.vsc(indexVector==i,1);
-  stat.behavscores{i} = reshape(stat.behavscores{i}, [], cfg.num_cond);
+
+% reshape usc and usv in different cells for group and condition
+usc = results.usc;
+vsc = results.vsc;
+nSubj = results.num_subj_lst;
+nCond = cfg.num_cond;
+nLV   = size(usc,2);
+G     = numel(nSubj);
+
+usc_cell = cell(G,nCond);
+vsc_cell = cell(G,nCond);
+
+row = 1;
+for g = 1:G
+    for c = 1:nCond
+        n = nSubj(g);
+        rows = row:row+n-1;
+        usc_cell{g,c} = usc(rows,:);   % [nSubj(g) × nLV]
+        vsc_cell{g,c} = vsc(rows,:);   % [nSubj(g) × nLV]
+        row = row + n;
+    end
 end
+stat.brainscores = usc_cell; % group by condition
+stat.behavscores = vsc_cell;
+
+% old, only LV1 as output
+% for i=1:ngroups
+%   stat.brainscores{i} = results.usc(indexVector==i,1);
+%   stat.brainscores{i} = reshape(stat.brainscores{i}, [], cfg.num_cond);
+%   stat.behavscores{i} = results.vsc(indexVector==i,1);
+%   stat.behavscores{i} = reshape(stat.behavscores{i}, [], cfg.num_cond);
+% end
 stat.results = results;
 stat.cfg = cfg;
 
@@ -184,3 +211,4 @@ for i = 1:length(groupSizes)
   indexVector = [indexVector, i * ones(1, groupSizes(i))];
 end
 end
+
