@@ -161,26 +161,26 @@ G     = numel(nSubj);
 usc_cell = cell(G,nCond);
 vsc_cell = cell(G,nCond);
 
-row = 1;
+row0 = 0;  % running offset into rows of usc/vsc
 for g = 1:G
-    for c = 1:nCond
-        n = nSubj(g);
-        rows = row:row+n-1;
-        usc_cell{g,c} = usc(rows,:);   % [nSubj(g) × nLV]
-        vsc_cell{g,c} = vsc(rows,:);   % [nSubj(g) × nLV]
-        row = row + n;
-    end
+  blockN = nSubj(g) * nCond;                 % rows in this group's block
+  rows_g = (row0 + 1) : (row0 + blockN);     % group block rows
+
+  % reshape: [ (subj×cond) × nLV ] -> [cond × subj × nLV]
+  U3 = reshape(usc(rows_g, :), [nCond, nSubj(g), nLV]);
+  V3 = reshape(vsc(rows_g, :), [nCond, nSubj(g), nLV]);
+
+  % extract each condition as [nSubj(g) × nLV]
+  for c = 1:nCond
+    usc_cell{g,c} = squeeze(U3(c, :, :));  % -> [nSubj(g) × nLV]
+    vsc_cell{g,c} = squeeze(V3(c, :, :));  % -> [nSubj(g) × nLV]
+  end
+
+  row0 = row0 + blockN;
 end
+
 stat.brainscores = usc_cell; % group by condition
 stat.behavscores = vsc_cell;
-
-% old, only LV1 as output
-% for i=1:ngroups
-%   stat.brainscores{i} = results.usc(indexVector==i,1);
-%   stat.brainscores{i} = reshape(stat.brainscores{i}, [], cfg.num_cond);
-%   stat.behavscores{i} = results.vsc(indexVector==i,1);
-%   stat.behavscores{i} = reshape(stat.behavscores{i}, [], cfg.num_cond);
-% end
 stat.results = results;
 stat.cfg = cfg;
 
