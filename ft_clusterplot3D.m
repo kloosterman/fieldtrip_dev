@@ -158,10 +158,18 @@ cfgfreq.figure = 'gca';
 
 % subplot(subplotsize(1),subplotsize(2), subplotind(1));
 % tiledlayout(subplotsize); % set when calling?
-nexttile
+nexttile(subplotind(1))
 colormap(gca, cmap); hold on
 
-ft_singleplotTFR(cfgfreq, freqTFR);
+if isscalar(freqTFR.time)
+  plot(freqTFR.freq, freqTFR.powspctrm, 'LineWidth',1,'Color',[0 0 0])
+  xlabel(ylabl)
+  ylabel('Integr. sample entropy')
+else
+  ft_singleplotTFR(cfgfreq, freqTFR);
+  xlabel('Time (s)')
+  ylabel(ylabl)
+end
 % tryout for plotting lines
 % freqTFR.dimord = 'chan_freq';
 % freqTFR = rmfield(freqTFR, 'time')
@@ -171,7 +179,7 @@ box on
 ax=gca; hold on
 plot([0,0], ax.YLim,'k',[0,0], ax.YLim,'k', 'Linewidth', 0.5);
 % ax.Position(3) = length(freqTFR.time)*0.015;
-title(sprintf('%s', titleTFR), 'Fontsize', 12)
+title(sprintf('%s', titleTFR), 'Fontsize', 9)
 zlim = get(gca, 'CLim'); % use same CLim for both topo and TFR
 
 c = colorbar;
@@ -188,8 +196,6 @@ c.Box = 'off';
 % % if strcmp(clrbar, 'no')
 % %     c.Visible = 'off';
 % % end
-xlabel('Time (s)')
-ylabel(ylabl)
 
 %% prepare data topo
 chansel = any(mask(:,:),2);
@@ -230,7 +236,7 @@ cfgtopo.feedback = 'no';
 cfgtopo.comment = 'no';
 cfgtopo.marker = 'off';
 cfgtopo.shading = 'flat';
-cfgtopo.style = 'straight_imsat'; %both  straight
+cfgtopo.style = 'straight'; %both  straight
 cfgtopo.interpolation =  'v4'; %'linear','cubic','nearest','v4' (default = 'v4') see GRIDDATA
 cfgtopo.markersize = 3;
 cfgtopo.highlight = 'off';
@@ -245,12 +251,18 @@ cfgtopo.colormap = cmap;
 % cfgtopo.interpolatenan = 'no';
 cfgtopo.interpolation = 'v4';
 cfgtopo.figure = 'gca';
+cfgtopo.gridscale = 100;
+cfgtopo.outlinewidth = 0.5;
+cfgtopo.linewidth = 0.5;
 
 % subplot(subplotsize(1),subplotsize(2), subplotind(2));
-ax = nexttile;
+ax = nexttile(subplotind(2));
 hold on
 ft_topoplotTFR(cfgtopo, freqtopo);
+ax=gca;
+ax.Position(3:4) = ax.Position(3:4) * 2;
 % colormap(gca, cmap); 
+% ax.Position = ax.Position .* [1 1 1.2 1.2];  % scale up
 
 %plot sensors with size determined by weight
 hold on
@@ -273,7 +285,8 @@ for isens = find(weights > 0)'
   %                                 plot(senspos(isens,1), senspos(isens,2), 'marker', 'x', 'color', 'k', 'markersize', 10, 'linestyle', 'none')
 end
 % title(sprintf('%s cluster %d\np = %1.3f', clussign, clus2plot, stat.([clussign 'clusters'])(clus2plot).prob), 'FontWeight', 'normal')
-title(sprintf('%s cluster %d\np = %1.3f', clussign, clus2plot, clus_pval ), 'FontWeight', 'normal')
+% title(sprintf('%s cluster %d\np = %1.3f', clussign, clus2plot, clus_pval ), 'FontWeight', 'normal')
+% title(sprintf('p = %1.3f', clus_pval ), 'FontWeight', 'normal')
 
 plotsuccess = true; % output argument
 
